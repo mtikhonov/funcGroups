@@ -3,5 +3,8 @@ MATLAB code to reproduce figures in Zhao, Cordero &amp; Tikhonov (2024), "Linear
 
 Code by Yuanchen Zhao
 
-Code will reuse precomputed data from the data folder if available.
-Remove a data file form that folder to recompute it from scratch.
+To use, run RunMe with no argument. The code will generate all data-dependent figures in the paper.
+
+The precomputed data files (includeed) will be used, if available. Remove (or rename) a data file to recompute it from scratch.
+
+Code uses "parfor" and will use the parallel computing toolbox with the default local configuration, if available.
