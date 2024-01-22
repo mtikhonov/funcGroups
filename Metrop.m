@@ -1,5 +1,5 @@
 function [GpM,Coeff,inE]=Metrop(abd,Y,lin,Nsamples,Nstrains,k) 
-% The Metropolis-like algorithm 
+% The Metropolis algorithm 
 % Input: 
 % abd: abundance of each species in each sample.
 % Y: function in each sample.
@@ -24,14 +24,10 @@ if recdCef
 Coeff=cell(length(k),1);
 end
 
-% x=1:Nstep;
-% beta=exp(0.01*(x-4000));
-
-% beta=10;
 for i=1:Nstep   
     candGp=drawEvent(GpM(randsample(maxNgroup,1),:),maxNgroup,2);  % candidate grouping
     [candE,indx,coeff]=EN(abd,Nsamples,candGp,Y,lin);    
-    if Emin(indx)>candE %|| rand<exp(-beta(1)*(candE-Emin(indx)))   
+    if Emin(indx)>candE %|| rand<exp(-beta*(candE-Emin(indx)))   
         GpM(indx,:)=candGp;                
         Emin(indx)=candE;              
         if recdCef
@@ -51,24 +47,16 @@ end
 function candGp = drawEvent(oriGp,maxNGp,minNGp)  % generate a new candidate grouping.  
     candGp=oriGp;
     NGp=max(oriGp);
-    if (NGp<maxNGp && rand>0.5) || NGp<=minNGp % split a group        
-        while 1
-            rd=randi(NGp);
-            spl=candGp==rd;         
-            Nspl=sum(spl);
-            if Nspl>1
-                break
-            end
-        end
+    if (NGp<maxNGp && rand>0.5) || NGp<=minNGp % split a group              
+        sizeGp=accumarray(candGp',1);
+        Gspl=datasample(find(sizeGp>1),1); % group for splitting
+        spl=find(candGp==Gspl);      % species in the group   
+        Nspl=sizeGp(Gspl);
 
-        while 1
+        g1g2=randperm(Nspl,2);        
         s=rand(1,Nspl)>0.5;
-            if any(s) && any(~s)
-                break
-            end
-        end
-        splid=find(spl);
-        candGp(splid(s))=NGp+1;
+        s(g1g2)=[1 0];   
+        candGp(spl(s))=NGp+1;
     else  % combine groups
         rp=randperm(NGp,2);
         candGp(candGp==rp(2))=rp(1);

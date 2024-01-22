@@ -1,4 +1,6 @@
 function GpE=EQObls(abd,Y,Nstrains,Nsamples)
+% The EQO algorithm adapted from Shan et al. Nat. Ecol. Evol. (2013). 
+% "bls" indicates we are using the boolean least square formulation (see method and the original paper). 
 opts = optimoptions('ga','Display','none','MaxGenerations',10000, ...
     'FunctionTolerance',1e-9,'MaxStallGenerations',500, ...
     'PopulationSize',100);

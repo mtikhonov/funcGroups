@@ -1,11 +1,18 @@
+%% 
+% Codes for generating Fig. 2-4 and Fig. S2-5 of
+% 
+% Y. Zhao, O. X. Cordero and M. Tikhonov, Linear-regression-based algorithms 
+% can succeed at identifying microbial functional groups despite the nonlinearity 
+% of ecological function.
+
 clear
 Nsamples=900; noise=0.1;
 Nsamples_array=100:100:900;
 noise_array=0.05:0.05:0.3;
-Ntest=50;
+Ntest=50; % Number of datasets generated for testing. One can change it to a smaller value for faster running.
 MakeFig2_S4_S5(Ntest,Nsamples,noise,Nsamples_array,noise_array) % validation of 3 algorithms for N=3
 MakeFig3(Ntest,Nsamples,noise) % longer chain
-MakeFig4(Ntest,Nsamples_array,noise_array) % linear vs. quadratic
+MakeFig4(2*Ntest,Nsamples_array,noise_array) % linear vs. quadratic 
 MakeFigS2(Ntest,Nsamples,noise) % EQO-2g
 MakeFigS3(Ntest,Nsamples,noise) % other functions
 %%
@@ -13,7 +20,7 @@ function MakeFig2_S4_S5(Ntest,Nsamples,noise,Nsamples_array,noise_array)
 Nstp=2; idfun=3;
 sizeGp=16; C=48;
 cSamp=15; Rr=15;
- k=2:4;
+k=2:4;
 if exist("fig2data.mat",'file')
     load("fig2data.mat")
 else
@@ -103,12 +110,6 @@ else
     fprintf('Done.\n')
 end
 plotFig3(ScM,ScR,k,Ntest,nearR,farR,nearM,farM)
-figure
-plotFig5(ScoreMR,2:6,{'ro-','k*-'},Ntest)
-ylabel("Grouping score")
-xlabel("Length of chain (N)")
-legend({'Metropolis','','Random'},"Location","northeast")
-exportgraphics(gcf,'figS2.pdf',"ContentType","vector")
 end
 
 function MakeFig4(Ntest,Nsamples_array,noise_array)
@@ -179,8 +180,8 @@ else
         gpR=randGp(Nstrains,k);
         Sc2(ii,:,:)=JacSim(expect,[gpE;gpE2;gpK;gpM;gpR]);
     end
-    fprintf('Saving Fig S1 data.\n')
-    save figS1data abd1 Y1 expect1 Sc1 Sc2
+    fprintf('Saving Fig S2 data.\n')
+    save figS2data abd1 Y1 expect1 Sc1 Sc2
     fprintf('Done.\n')
 end
 plotFigS2(abd1,Y1,expect1,Sc1,Sc2)
@@ -204,7 +205,7 @@ else
     save figS3m1data ScInM ScInR k
     fprintf('Done.\n')
 end
-plotFig5(cat(2,ScInM,ScInR),k,{'b^-','ro-','k*-'},Ntest,"fig5A5.svg")
+plotFig5(cat(2,ScInM,ScInR),k,{'b^-','ro-','k*-'},Ntest,"figS3A.svg")
 
 sizeGp=12; C=48;
 cSamp=15; Rr=15; k=2:5;
@@ -223,7 +224,7 @@ else
     save figS3m2data ScBrM ScBrR k
     fprintf('Done.\n')
 end
-plotFig5(cat(2,ScBrM,ScBrR),k,{'b^-','gx-','ro-','k*-'},Ntest,"fig5B5.svg")
+plotFig5(cat(2,ScBrM,ScBrR),k,{'b^-','ro-','gx-','k*-'},Ntest,"figS3B.svg")
  
 sizeGp=16; C=48;
 cSamp=15; Rr=15; k=2:5;
@@ -232,19 +233,19 @@ if exist("figS3m3data.mat",'file')
 else
     fprintf('Generating Fig S3m3 data.\n')
     parfor ii=1:Ntest       
-        [abd,Y,expectFine,expectCoarse]=slayer(sizeGp,C,Rr,cSamp,Nsamples,noise);    
+        [abd,Y,expectFine,expectCoarse]=bipath(sizeGp,C,Rr,cSamp,Nsamples,noise);    
         Nstrains=size(abd,2);    
         gpM=Metrop(abd,Y,1,Nsamples,Nstrains,k);                
         gpR=randGp(Nstrains,k);
-        ScLayMc(:,:,ii)=JacSim(expectCoarse,gpM,1:2);
-        ScLayMf(:,:,ii)=JacSim(expectFine,gpM,1:4);
-        ScLayR(:,:,ii)=JacSim(expectFine,gpR,[1 5]);      
+        ScBpMc(:,:,ii)=JacSim(expectCoarse,gpM,1:2);
+        ScBpMf(:,:,ii)=JacSim(expectFine,gpM,1:4);
+        ScBpR(:,:,ii)=JacSim(expectFine,gpR,[1 5]);      
     end
-    save figS3m3data ScLayMc ScLayMf ScLayR k
+    save figS3m3data ScBpMc ScBpMf ScBpR k
     fprintf('Done.\n')
 end
-plotFig5(cat(2,ScLayMc,ScLayR(:,2,:)),k,{'b^-','ro-','k*-'},Ntest,"fig5C15.svg")
-plotFig5(cat(2,ScLayMf,ScLayR(:,1,:)),k,{'b^--','b^-.','ro--','ro-.','k*-'},Ntest,"fig5C25.svg")
+plotFig5(cat(2,ScBpMc,ScBpR(:,2,:)),k,{'b^-','ro-','k*-'},Ntest,"figS3C1.svg")
+plotFig5(cat(2,ScBpMf,ScBpR(:,1,:)),k,{'b^--','b^-.','ro--','ro-.','k*-'},Ntest,"figS3C2.svg")
 end
 
 function plotFig2(Sc,maxSc2,ScoreM,Nsamples,noise)
@@ -391,11 +392,11 @@ xlabel('Relative noise')
 if mxE==0.3
 colorbar("Ticks",(-0.3):0.1:0.3,'TickLabels',["\leq -0.3",-0.2:0.1:0.2,"\geq 0.3"])
 end
-hold on
-% these are for ploting the phase boundaries, so the exact coordinates should be adjust each time manually. 
-plot([0.5,1.5,1.5,2.5,2.5],[4.5,4.5,5.5,5.5,9.5],'k--')
-plot([0.5 1.5 1.5 2.5 2.5 3.5 3.5 4.5 4.5],[2.5 2.5 3.5 3.5 4.5 4.5 6.5 6.5 9.5],'k--')
-hold off
+% Ploting the phase boundaries. The exact coordinates should be adjust each time manually. 
+% hold on
+% plot([0.5,1.5,1.5,3.5,3.5],[3.5,3.5,8.5,8.5,9.5],'k--')
+% plot([0.5 1.5 1.5 2.5 2.5 3.5 3.5 4.5 4.5 5.5 5.5],[2.5 2.5 3.5 3.5 4.5 4.5 6.5 6.5 8.5 8.5 9.5],'k--')
+% hold off
 title(["      Ability to predict function","(\Delta out-of-sample R^2)"],"HorizontalAlignment","center")
 axis xy
 axis square
@@ -423,8 +424,8 @@ hold on
 scatter([],[],20,"red","filled","s")
 scatter([],[],10,"blue","filled","s")
 % Same as above.
-plot([0.5,1.5,1.5,2.5,2.5],[4.5,4.5,5.5,5.5,9.5],'k--')
-plot([0.5 1.5 1.5 2.5 2.5 3.5 3.5 4.5 4.5],[2.5 2.5 3.5 3.5 4.5 4.5 6.5 6.5 9.5],'k--')
+% plot([0.5,1.5,1.5,3.5,3.5],[3.5,3.5,8.5,8.5,9.5],'k--')
+% plot([0.5 1.5 1.5 2.5 2.5 3.5 3.5 4.5 4.5 5.5 5.5],[2.5 2.5 3.5 3.5 4.5 4.5 6.5 6.5 8.5 8.5 9.5],'k--')
 hold off
 [lg,ob]=legend(["Linear is better","Quadratic is better"],"Orientation","horizontal");
 lg.Layout.Tile='north';
@@ -503,8 +504,8 @@ axis square
 ax3=nexttile;
 Sc1=mean(Sc1,3);
 hold on
-boxchart(Sc1,'MarkerStyle','none','BoxEdgeColor',"k","BoxFaceColor",[0.5 0.5 0.5])
-plot(1:5,mean(Sc1),'ok')
+boxchart(Sc1,'MarkerSize',10,'MarkerColor',[0.3,0.3,0.3],'MarkerStyle','.','JitterOutliers','on','BoxEdgeColor',"k","BoxFaceColor",[0.5 0.5 0.5])
+plot(1:5,mean(Sc1),'pentagramk','MarkerSize',12)
 hold off
 xticklabels(["EQO","EQO-2g","K-Means","Metropolis","Random"])
 ylabel("Grouping score")
@@ -517,8 +518,8 @@ axis square
 ax4=nexttile;
 Sc2=mean(Sc2,3);
 hold on
-boxchart(Sc2,'MarkerStyle','none','BoxEdgeColor',"k","BoxFaceColor",[0.5 0.5 0.5])
-plot(1:5,mean(Sc2),'ok')
+boxchart(Sc2,'MarkerSize',10,'MarkerColor',[0.3,0.3,0.3],'MarkerStyle','.','JitterOutliers','on','BoxEdgeColor',"k","BoxFaceColor",[0.5 0.5 0.5])
+plot(1:5,mean(Sc2),'pentagramk','MarkerSize',12)
 hold off
 xticklabels(["EQO","EQO-2g","K-Means","Metropolis","Random"])
 ylabel("Grouping score")

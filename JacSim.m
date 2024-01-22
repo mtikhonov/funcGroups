@@ -1,4 +1,6 @@
 function score=JacSim(expect,Gp,k)
+% Calculating the recovery quality of true groups indicated by "k".
+% If "k" is not a input, calculate for all true groups.
 if nargin==2
 k=unique(expect);
 end

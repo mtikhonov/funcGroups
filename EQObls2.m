@@ -1,4 +1,5 @@
 function GpE=EQObls2(abd,Y,Nstrains)
+% The EQO-2g algorithm introduced in S1 appendix Sec. 3.
 opts = optimoptions('ga','Display','none','FunctionTolerance',1e-9,'MaxGenerations',10000,'MaxStallGenerations',500,'PopulationSize',100);
 Gp=ga(@(x) obj(x,abd,Y),Nstrains,[],[],[],[],zeros(Nstrains,1),ones(Nstrains,1),[],1:Nstrains,opts);
 GpE=Gp+1;
